@@ -43,7 +43,7 @@ export default function Index() {
   // Collection titles
   const [showCollectionTitles, setShowCollectionTitles] = useState(false);
   // Pickers Panel visibility, visible on load if no wallet(s)
-  const [settingsVisible, setSettingsVisible] = useState(true);
+  const [settingsVisible, setSettingsVisible] = useState(allWallets.length === 0 && walletAddrs.length === 0);
   // Item Modal
   const [modalItem, setModalItem] = useState<NFT | undefined>(undefined);
 

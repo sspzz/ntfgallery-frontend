@@ -11,15 +11,15 @@ const NFTCollection = ({
   nfts: NFT[];
   title?: string;
 }) => {
-  if(nfts.length === 0) {
+  if (nfts.length === 0) {
     return null;
   }
-  
+
   return (
     <Container>
       {title && <Title>{title}</Title>}
       {nfts.length > 0 && (
-        <Grid>
+        <Grid itemWidth={itemWidth}>
           {nfts?.map((t) => {
             return Array.from(Array(t.balance)).map(() => (
               <NFTItem
@@ -45,13 +45,21 @@ const Container = styled.div`
   padding: 1em;
 `;
 
-const Title = styled.h4``;
+const Title = styled.h3`
+  margin-top: 0;
+  margin-bottom: 0.5em;
+`;
 
-const Grid = styled.div`
+interface GridProps {
+  itemWidth: number;
+}
+
+const Grid = styled.div<GridProps>`
   display: flex;
   flex-direction: row;
   align-items: start;
   justify-content: start;
   flex-wrap: wrap;
-  gap: 0.5em;
+  column-gap: ${(props) => props.itemWidth * 0.05}px;
+  row-gap: ${(props) => props.itemWidth * 0.05}px;
 `;

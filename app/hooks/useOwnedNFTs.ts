@@ -11,7 +11,9 @@ export const locksAddress = "0xDa5cF3a42ebaCd2d8fcb53830b1025E01D37832D";
 export const ringsAddress = "0x5d4aA6fF9de7963eAD5a17B454dc1093ca9E98E7";
 export const impBoxAddres = "0x59775fD5F266C216D7566eB216153aB8863C9c84";
 export const athenaeumAddress = "0x7C104b4db94494688027CcED1E2EBFb89642C80F";
+export const beastsAddress = "0x8634C23D5794Ed177E9Ffd55b22fdB80A505ab7B";
 export const officialCollections = [
+  beastsAddress,
   wizardsAddress,
   soulsAddress,
   warriorsAddress,
@@ -21,7 +23,7 @@ export const officialCollections = [
   impBoxAddres,
   locksAddress,
   athenaeumAddress,
-  ringsAddress,
+  // ringsAddress,
 ];
 
 export const wizardNounsAddress = "0x5a79182165a2917eF9CcCF33f472FE22afffeff8";
