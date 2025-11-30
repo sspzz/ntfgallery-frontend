@@ -14,7 +14,7 @@ const NFTItem = ({ width, nft }: { width?: number | undefined; nft: NFT }) => {
   }
 
   return (
-    <Containter>
+    <Containter $itemWidth={width}>
       <ItemIcon
         src={image}
         $itemWidth={width}
@@ -33,8 +33,10 @@ const NFTItem = ({ width, nft }: { width?: number | undefined; nft: NFT }) => {
 
 export default NFTItem;
 
-const Containter = styled.div`
+const Containter = styled.div<{ $itemWidth: number | undefined }>`
   position: relative;
+  width: ${(props) => (props.$itemWidth ? `${props.$itemWidth}px` : "100vh")};
+  height: ${(props) => (props.$itemWidth ? `${props.$itemWidth}px` : "100vh")};
 `;
 
 const ItemIcon = styled.img<{ $itemWidth: number | undefined }>`
