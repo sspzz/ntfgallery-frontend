@@ -50,7 +50,12 @@ export const defaultCollections = [
   // ...communityCollections,
 ];
 
-export type NFT = OwnedNft & { owner: string };
+
+type Owner = {
+  address: string;
+  ens?: string;
+};
+export type NFT = OwnedNft & { owner: Owner };
 export type Attribute = { trait_type: string; value: string };
 export type NFTMetaData = {
   name: string;
@@ -66,26 +71,26 @@ const config = {
 const alchemy = new Alchemy(config);
 
 async function fetchTokensByContract(
-  wallets: string[],
+  wallets: Owner[],
   contractAddresses: string[] | undefined
 ) {
   // Get tokens for each wallet, and sort by contract
   let tokensByContract: NFTsByContract = {};
   for (var wallet of wallets) {
     let allNFTs: OwnedNft[] = [];
-    let nfts = await alchemy.nft.getNftsForOwner(wallet, {
+    let nfts = await alchemy.nft.getNftsForOwner(wallet.address, {
       contractAddresses,
     });
     allNFTs.push(...nfts.ownedNfts);
     while (nfts.pageKey) {
-      nfts = await alchemy.nft.getNftsForOwner(wallet, {
+      nfts = await alchemy.nft.getNftsForOwner(wallet.address, {
         contractAddresses,
         pageKey: nfts.pageKey,
       });
       allNFTs.push(...nfts.ownedNfts);
     }
     allNFTs.forEach((nft) => {
-      const ownedNFT = { ...nft, owner: wallet };
+      const ownedNFT: NFT = { ...nft, owner: wallet };
       if (tokensByContract[nft.contract.address]) {
         tokensByContract[nft.contract.address].push(ownedNFT);
       } else {
@@ -107,35 +112,66 @@ function useOwnedNFTs(
   ownerAddresses: string[],
   contractAddresses: string[] | undefined
 ) {
+  const [resolvedOwners, setResolvedOwners] = useState<Owner[] | undefined>(undefined);
   const [tokens, setTokens] = useState<NFTsByContract>({});
   const [collections, setCollections] = useState<NftContractForNft[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // First resolve any ENS names to addresses
   useEffect(() => {
-    async function getNFTs() {
-      setLoading(true);
-      const data = await fetchTokensByContract(
-        ownerAddresses,
-        contractAddresses
-      );
-      const ownedCollections = Object.values(data)
-        .flatMap((t) => (t[0].contract ? t[0].contract : []))
-        // Sort by preferred collection order
-        .sort((a, b) =>
-          defaultCollections
-            .indexOf(a.address) >
+    resolveAddresses();
+  }, [ownerAddresses]);
+
+  // Then fetch NFTs for resolved addresses
+  useEffect(() => {
+    getNFTs();
+  }, [resolvedOwners, contractAddresses]);
+
+  async function resolveAddresses() {
+    const ensNames = ownerAddresses.filter((addr) => addr.endsWith(".eth"));
+
+    let ensOwners: Owner[] = [];
+    for (const name of ensNames) {
+      try {
+        const resolved = await alchemy.core.resolveName(name);
+        if (resolved) {
+          ensOwners.push({ address: resolved, ens: name });
+        } else {
+          console.log(`ENS name did not resolve to an address: ${name}`);
+        }
+      } catch { }
+    }
+
+    // combine resolved ENS + already-valid addresses
+    const addressOwners = ownerAddresses
+      .filter((addr) => !addr.endsWith(".eth"))
+      .map((addr) => { return { address: addr } });
+    setResolvedOwners([...addressOwners, ...ensOwners]);
+  }
+
+  async function getNFTs() {
+    if (!resolvedOwners) return;
+
+    setLoading(true);
+    const data = await fetchTokensByContract(
+      resolvedOwners,
+      contractAddresses
+    );
+    const ownedCollections = Object.values(data)
+      .flatMap((t) => (t[0].contract ? t[0].contract : []))
+      // Sort by preferred collection order
+      .sort((a, b) =>
+        defaultCollections
+          .indexOf(a.address) >
           defaultCollections
             .indexOf(b.address)
-            ? 1
-            : -1
-        );
-      setCollections(ownedCollections);
-      setTokens(data);
-      setLoading(false);
-    }
-    getNFTs();
-  }, [ownerAddresses, contractAddresses]);
-
+          ? 1
+          : -1
+      );
+    setCollections(ownedCollections);
+    setTokens(data);
+    setLoading(false);
+  }
   return { tokens, collections, isLoading: loading };
 }
 

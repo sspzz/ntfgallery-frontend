@@ -28,12 +28,12 @@ function NFTGallery() {
     .flat()
     .filter(
       (t) =>
-        selectedWallets.includes(t.owner) &&
+        selectedWallets.includes(t.owner.ens ? t.owner.ens : t.owner.address) &&
         selectedCollections.includes(t.contract.address)
     )
     .sort((a, b) =>
       defaultCollections.indexOf(b.contract.address) >
-      defaultCollections.indexOf(a.contract.address)
+        defaultCollections.indexOf(a.contract.address)
         ? -1
         : 1
     );
